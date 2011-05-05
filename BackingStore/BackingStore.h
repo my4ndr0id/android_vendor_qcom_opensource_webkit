@@ -37,11 +37,16 @@ namespace WebTech {
 class IBackingStore : public virtual IRefCount {
 public:
     enum Param {
+        ALLOW_SPECULATIVE_UPDATE,
         ALLOW_INPLACE_SCROLL,
         ALLOW_TEXTURE_COORDINATE,
         PRIORITY,
         QUALITY,
         ALLOW_PARTIAL_RENDER,
+        ALLOW_ABORT,
+        ALLOW_DELAYED_CLEANUP,
+        LOG_PERFORMANCE,
+        LOG_DEBUG,
         PARAM_EXTENSIONS_START = 0x10000,
     };
 
@@ -78,6 +83,8 @@ public:
     class IBuffer {
     public:
         virtual ~IBuffer() {}
+        virtual int width() = 0;
+        virtual int height() = 0;
         virtual void release() = 0;
     };
 
@@ -88,11 +95,11 @@ public:
     class IUpdater {
     public:
         virtual ~IUpdater() {}
-        virtual IBuffer* createBuffer(int w, int h) = 0; // the user should supply a buffer (an IBuffer implementation)
+        virtual IBuffer* createBuffer(int w, int h) = 0; // the user should supply a buffer (an IBuffer implementation).  The returned IBuffer must be at least as big as the specified width and height.
         virtual void inPlaceScroll(IBuffer*, int x, int y, int w, int h, int dx, int dy) = 0; // the user should move a rectangle (x,y,w,h) by offset (dx,dy) on the supplied IBuffer
         // the user should render the content "region" (in scaled document space) onto location (bufferX, bufferY) on the supplied IBuffer.
         // the flag "existingRegion" indicates whether this region is an existing region or an exposed region.
-        virtual void renderToBackingStoreRegion(IBuffer*, int bufferX, int bufferY, UpdateRegion&, UpdateQuality quality, bool existingRegion) = 0;
+        virtual void renderToBackingStoreRegion(IBuffer*, int bufferX, int bufferY, UpdateRegion&, UpdateQuality quality, float scale, bool existingRegion) = 0;
     };
 
     // When drawing onto the screen, the backing store supplies the user with a list of buffers and regions to copy
@@ -115,7 +122,7 @@ public:
 
     virtual ~IBackingStore() {};
 
-    // set static parameters for the backing store
+    // Set static parameters for the backing store
     virtual void setParam(IBackingStore::Param, int value) = 0;
 
     virtual void cleanup() = 0; // the backing store should be freed.
@@ -131,22 +138,27 @@ public:
                         int viewportX, int viewportY, // location of the top left corner of the viewport.
                         int viewportWidth, int viewportHeight, // size of the viewport
                         int contentWidth, int contentHeight, // size of the document (in scaled document coordinate)
-                        bool contentChanged // content changed since last update?  This is a hint only.
+                        float contentScale, // scale applied to the document
+                        int numContentChanged // number of times content changed since last update?  This is a hint only.
                         ) = 0;
 
-    // returns the available draw region available for drawing
+    // Returns the available draw region available for drawing
     virtual RegionAvailability canDrawRegion(IBackingStore::UpdateRegion&, IBackingStore::UpdateRegion&) = 0;
-    // returns a list (iterator) of regions to draw to the screen.
+    // Returns a list (iterator) of regions to draw to the screen.
     // (viewportX, viewportY) is the location of the top left corner of the viewport in scaled document coordinate.
     // For example, when scrolling down a document, the viewport moves in the positive y direction and the viewportY will be increasing.
     virtual IDrawRegionIterator* beginDrawRegion(UpdateRegion&, int viewportX, int viewportY) = 0;
+    // For the above available region, get the scale that was applied to the document when rendering the region.
+    virtual float getAvailableRegionScale() = 0;
 
 };
 
 
-// create an IBackingStore object
+// Create an IBackingStore object
 extern "C" IBackingStore* createBackingStore(IBackingStore::IUpdater*);
-
+// Obtain the version string of the Backing Store
+#define WEBTECH_BACKINGSTORE_VERSION "1.1.0.2011.05.05"
+extern "C" const char* getBackingStoreVersion();
 }; // WebTech
 
 #endif // WebTech_BackingStore_h
