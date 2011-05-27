@@ -27,18 +27,25 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _WKACCEL_H_
-#define _WKACCEL_H_
+#ifndef _COLORCONVERTERAPI_H_
+#define _COLORCONVERTERAPI_H_
 
-namespace WKAccel {
+namespace WebTech {
 
 // Qualcomm specific color formats
 static const int QOMX_COLOR_FormatYUV420PackedSemiPlanar64x32Tile2m8ka = 0x7FA30C03;
 
-bool colorConverter (char* yuvFrame, int yuvFormat, char* rgbFrame, int rgbFormat, int width, int height);
-int calcFrameSize (int format, int width, int height);
+extern "C" bool colorConverter (char* yuvFrame, int yuvFormat, char* rgbFrame, int rgbFormat, int width, int height);
+extern "C" int calcFrameSize (int format, int width, int height);
 
+typedef bool (*ColorConverter_t) (char* yuvFrame, int yuvFormat, char* rgbFrame, int rgbFormat, int width, int height);
+typedef int (*CalcFrameSize_t) (int format, int width, int height);
+
+const char* const ColorConverterFuncName = "colorConverter";
+const char* const CalcFrameSizeFuncName = "calcFrameSize";
+const char* const ColorConverterLibraryNameProperty = "persist.webtech.color_conv_lib";
+const char* const ColorConverterLibraryName = "libwebkitaccel.so";
 
 }  // namespace
 
-#endif // _WKACCEL_H_
+#endif // _COLORCONVERTERAPI_H_

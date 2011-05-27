@@ -62,7 +62,9 @@ public:
 
 // create an IBackingStore object
 extern "C" IRenderer2D* createRenderer2D();
+typedef IRenderer2D* (*CreateRenderer2D_t)();
 
+const char* const CreateRenderer2DFuncName = "createRenderer2D";
 }; // WebTech
 
 #endif // WebTech_Renderer2D_h

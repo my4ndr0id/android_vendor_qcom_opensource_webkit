@@ -157,8 +157,16 @@ public:
 // Create an IBackingStore object
 extern "C" IBackingStore* createBackingStore(IBackingStore::IUpdater*);
 // Obtain the version string of the Backing Store
-#define WEBTECH_BACKINGSTORE_VERSION "1.1.0.2011.05.05"
+#define WEBTECH_BACKINGSTORE_VERSION "1.1.0.2011.05.31"
 extern "C" const char* getBackingStoreVersion();
+
+typedef IBackingStore* (*CreateBackingStore_t)(IBackingStore::IUpdater*);
+typedef const char* (*GetBackingStoreVersion_t)();
+
+const char* const CreateBackingStoreFuncName = "createBackingStore";
+const char* const GetBackingStoreVersionFuncName = "getBackingStoreVersion";
+const char* const BackingStoreLibraryNameProperty = "persist.webtech.backngstore_lib";
+const char* const BackingStoreLibraryName = "libwebkitaccel.so";
 }; // WebTech
 
 #endif // WebTech_BackingStore_h
